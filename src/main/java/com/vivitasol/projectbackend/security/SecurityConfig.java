@@ -27,22 +27,29 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfiguration()))
-            .sessionManagement(session -> 
+            .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas
+
+                // ============================
+                // RUTAS PÚBLICAS
+                // ============================
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/productos/**").permitAll()
                 .requestMatchers("/api/categorias/**").permitAll()
-                
-                // Rutas protegidas para clientes
+
+                // ============================
+                // RUTAS PROTEGIDAS
+                // ============================
                 .requestMatchers("/api/carrito/**").authenticated()
                 .requestMatchers("/api/ordenes/**").authenticated()
-                
-                // Rutas solo para admin
+
+                // ============================
+                // RUTAS EXCLUSIVAS ADMIN
+                // ============================
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -52,18 +59,21 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt con 12 salt rounds para mayor seguridad
+        // BCrypt con 12 salt rounds — recomendado por seguridad
         return new BCryptPasswordEncoder(12);
     }
 
     @Bean
     public CorsConfigurationSource corsConfiguration() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:5173"));  // frontend React
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
+
+        // IMPORTANTE — mejora rendimiento CORS y evita errores de preflight
+        config.setMaxAge(3600L); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
