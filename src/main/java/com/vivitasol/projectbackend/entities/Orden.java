@@ -1,17 +1,10 @@
 package com.vivitasol.projectbackend.entities;
 
+import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.List;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import lombok.Data;
 
 @Data
 @Entity
@@ -21,7 +14,13 @@ public class Orden {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String numeroBoleta;  // Formato: BOL-0000001
+
     private LocalDateTime fecha = LocalDateTime.now();
+    
+    private Integer subtotal;
+    private Integer iva;  // 19% del subtotal
     private Integer total;
 
     @ManyToOne
@@ -39,12 +38,36 @@ public class Orden {
         this.id = id;
     }
 
+    public String getNumeroBoleta() {
+        return numeroBoleta;
+    }
+
+    public void setNumeroBoleta(String numeroBoleta) {
+        this.numeroBoleta = numeroBoleta;
+    }
+
     public LocalDateTime getFecha() {
         return fecha;
     }
 
     public void setFecha(LocalDateTime fecha) {
         this.fecha = fecha;
+    }
+
+    public Integer getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(Integer subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public Integer getIva() {
+        return iva;
+    }
+
+    public void setIva(Integer iva) {
+        this.iva = iva;
     }
 
     public Integer getTotal() {

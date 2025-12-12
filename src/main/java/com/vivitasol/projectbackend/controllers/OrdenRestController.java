@@ -1,5 +1,7 @@
 package com.vivitasol.projectbackend.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -46,5 +48,17 @@ public class OrdenRestController {
                 .ok()
                 .headers(headers)
                 .body(pdf);
+    }
+
+    @GetMapping("/usuario/{usuarioId}/historial")
+    public ResponseEntity<List<Orden>> obtenerHistorial(@PathVariable Long usuarioId) {
+        List<Orden> ordenes = ordenService.obtenerHistorialUsuario(usuarioId);
+        return ResponseEntity.ok(ordenes);
+    }
+
+    @GetMapping("/admin/todas")
+    public ResponseEntity<List<Orden>> obtenerTodasLasOrdenes() {
+        List<Orden> ordenes = ordenService.obtenerTodasLasOrdenes();
+        return ResponseEntity.ok(ordenes);
     }
 }

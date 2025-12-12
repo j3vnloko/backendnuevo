@@ -8,5 +8,9 @@ public interface CarritoService {
 
     Carrito agregarProducto(Long usuarioId, Long productoId, Integer cantidad);
 
+    Carrito actualizarCantidad(Long usuarioId, Long itemId, Integer cantidad);
+
+    Carrito eliminarItem(Long usuarioId, Long itemId);
+
     void vaciarCarrito(Long usuarioId);
 }

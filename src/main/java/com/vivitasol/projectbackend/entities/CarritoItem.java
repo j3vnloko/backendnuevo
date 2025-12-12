@@ -1,14 +1,14 @@
 package com.vivitasol.projectbackend.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Data;
 
-@Data
 @Entity
 public class CarritoItem {
 
@@ -18,6 +18,7 @@ public class CarritoItem {
 
     @ManyToOne
     @JoinColumn(name = "carrito_id")
+    @JsonBackReference
     private Carrito carrito;
 
     @ManyToOne
@@ -26,6 +27,7 @@ public class CarritoItem {
 
     private Integer cantidad;
 
+    // Getters y Setters
     public Long getId() {
         return id;
     }

@@ -2,6 +2,7 @@ package com.vivitasol.projectbackend.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.vivitasol.projectbackend.entities.Carrito;
 import com.vivitasol.projectbackend.entities.CarritoItem;
@@ -13,6 +14,7 @@ import com.vivitasol.projectbackend.repositories.ProductoRepository;
 import com.vivitasol.projectbackend.repositories.UsuarioRepository;
 
 @Service
+@Transactional
 public class CarritoServiceImpl implements CarritoService {
 
     @Autowired
@@ -50,13 +52,58 @@ public class CarritoServiceImpl implements CarritoService {
         Producto producto = productoRepo.findById(productoId)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-        CarritoItem item = new CarritoItem();
-        item.setCarrito(carrito);
-        item.setProducto(producto);
-        item.setCantidad(cantidad);
+        // Verificar si el producto ya existe en el carrito
+        CarritoItem itemExistente = carrito.getItems().stream()
+                .filter(i -> i.getProducto().getId().equals(productoId))
+                .findFirst()
+                .orElse(null);
 
-        itemRepo.save(item);
+        if (itemExistente != null) {
+            // Si existe, sumar la cantidad
+            itemExistente.setCantidad(itemExistente.getCantidad() + cantidad);
+            itemRepo.save(itemExistente);
+        } else {
+            // Si no existe, crear nuevo item
+            CarritoItem nuevoItem = new CarritoItem();
+            nuevoItem.setCarrito(carrito);
+            nuevoItem.setProducto(producto);
+            nuevoItem.setCantidad(cantidad);
+            itemRepo.save(nuevoItem);
+            carrito.getItems().add(nuevoItem);
+        }
 
+        return obtenerCarrito(usuarioId);
+    }
+
+    @Override
+    public Carrito actualizarCantidad(Long usuarioId, Long itemId, Integer cantidad) {
+        CarritoItem item = itemRepo.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+
+        if (!item.getCarrito().getUsuario().getId().equals(usuarioId)) {
+            throw new RuntimeException("No autorizado");
+        }
+
+        if (cantidad <= 0) {
+            itemRepo.delete(item);
+        } else {
+            item.setCantidad(cantidad);
+            itemRepo.save(item);
+        }
+
+        return obtenerCarrito(usuarioId);
+    }
+
+    @Override
+    public Carrito eliminarItem(Long usuarioId, Long itemId) {
+        CarritoItem item = itemRepo.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item no encontrado"));
+
+        if (!item.getCarrito().getUsuario().getId().equals(usuarioId)) {
+            throw new RuntimeException("No autorizado");
+        }
+
+        itemRepo.delete(item);
         return obtenerCarrito(usuarioId);
     }
 
