@@ -19,21 +19,20 @@ public class Usuario {
     private String nombre;
     private String email;
     private String password;
-    private String rol;       // "ADMIN" / "CLIENTE"
+    private String rol;       // ADMIN o CLIENTE
     private Boolean activo = true;
 
-    // 🔥 Evitar ciclo: Usuario → Carrito → Usuario
+    // Evitar ciclo Usuario → Carrito → Usuario
     @JsonIgnore
     @OneToOne(mappedBy = "usuario")
     private Carrito carrito;
 
-    // 🔥 Evitar ciclo: Usuario → Ordenes → Usuario
+    // Evitar ciclo Usuario → Ordenes → Usuario
     @JsonIgnore
     @OneToMany(mappedBy = "usuario")
     private java.util.List<Orden> ordenes;
 
     // Getters y Setters
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
