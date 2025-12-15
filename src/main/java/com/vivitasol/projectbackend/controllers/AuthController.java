@@ -40,20 +40,19 @@ public class AuthController {
             if (usuario == null) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(null, null, null, null, "Email no registrado"));
+                    .body(new AuthResponse(null, null, null, null, null, "Email no registrado"));
             }
 
-            // Verificar contraseña con BCrypt (protección contra timing attacks)
             if (!passwordEncoder.matches(req.getPassword(), usuario.getPassword())) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(null, null, null, null, "Contraseña incorrecta"));
+                    .body(new AuthResponse(null, null, null, null, null, "Contraseña incorrecta"));
             }
 
             if (!usuario.getActivo()) {
                 return ResponseEntity
                     .status(HttpStatus.FORBIDDEN)
-                    .body(new AuthResponse(null, null, null, null, "Usuario desactivado"));
+                    .body(new AuthResponse(null, null, null, null, null, "Usuario desactivado"));
             }
 
             // Generar token JWT
@@ -68,6 +67,7 @@ public class AuthController {
                     usuario.getId(),
                     usuario.getNombre(),
                     usuario.getEmail(),
+                    usuario.getRol(),   // ✅ Enviar ROL
                     token,
                     "Login exitoso"
                 )
@@ -76,7 +76,7 @@ public class AuthController {
         } catch (Exception ex) {
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthResponse(null, null, null, null, "Error en el servidor"));
+                .body(new AuthResponse(null, null, null, null, null, "Error en el servidor"));
         }
     }
 
@@ -84,18 +84,14 @@ public class AuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
-            // Hash de contraseña con BCrypt (12 salt rounds)
-            String passwordHash = passwordEncoder.encode(usuario.getPassword());
-            usuario.setPassword(passwordHash);
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
-            // Asignar rol por defecto
             if (usuario.getRol() == null || usuario.getRol().isEmpty()) {
                 usuario.setRol("CLIENTE");
             }
 
             Usuario nuevo = usuarioServices.registrar(usuario);
 
-            // Generar token automáticamente al registrarse
             String token = jwtUtil.generateToken(
                 nuevo.getEmail(),
                 nuevo.getId(),
@@ -107,6 +103,7 @@ public class AuthController {
                     nuevo.getId(),
                     nuevo.getNombre(),
                     nuevo.getEmail(),
+                    nuevo.getRol(),   // ✅ Enviar ROL
                     token,
                     "Usuario registrado correctamente"
                 )
@@ -115,7 +112,7 @@ public class AuthController {
         } catch (RuntimeException ex) {
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new AuthResponse(null, null, null, null, ex.getMessage()));
+                .body(new AuthResponse(null, null, null, null, null, ex.getMessage()));
         }
     }
 
@@ -126,7 +123,7 @@ public class AuthController {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new AuthResponse(null, null, null, null, "Token no proporcionado"));
+                    .body(new AuthResponse(null, null, null, null, null, "Token no proporcionado"));
             }
 
             String token = authHeader.substring(7);
@@ -135,17 +132,16 @@ public class AuthController {
             if (jwtUtil.isTokenExpired(token)) {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(null, null, null, null, "Token expirado"));
+                    .body(new AuthResponse(null, null, null, null, null, "Token expirado"));
             }
 
             Usuario usuario = usuarioServices.obtenerPorEmail(email);
             if (usuario == null) {
                 return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new AuthResponse(null, null, null, null, "Usuario no encontrado"));
+                    .body(new AuthResponse(null, null, null, null, null, "Usuario no encontrado"));
             }
 
-            // Generar nuevo token
             String newToken = jwtUtil.generateToken(
                 usuario.getEmail(),
                 usuario.getId(),
@@ -157,6 +153,7 @@ public class AuthController {
                     usuario.getId(),
                     usuario.getNombre(),
                     usuario.getEmail(),
+                    usuario.getRol(),   // ✅ Enviar ROL también aquí
                     newToken,
                     "Token renovado"
                 )
@@ -165,7 +162,7 @@ public class AuthController {
         } catch (Exception ex) {
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthResponse(null, null, null, null, "Error al renovar token"));
+                .body(new AuthResponse(null, null, null, null, null, "Error al renovar token"));
         }
     }
 }
